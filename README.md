@@ -1,4 +1,4 @@
-# scan2findimgs README
+# scan2findimgs
 
 scan to find images in project folder,Visual Studio Code Extension
 
