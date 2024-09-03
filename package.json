@@ -44,6 +44,7 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
+    "build": "rm -rf ./dist && webpack && cd ./src/panel-webview && npm run build",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
@@ -72,5 +73,9 @@
     "fs-extra": "^11.2.0",
     "glob": "^11.0.0",
     "jsonrepair": "^3.8.0"
-  }
+  },
+  "packageManager": "yarn@4.4.1",
+  "workspaces": [
+    "src/panel-webview"
+  ]
 }

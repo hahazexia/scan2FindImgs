@@ -36,6 +36,7 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(__webpack_require__(1));
 const glob = __importStar(__webpack_require__(2));
+const fs = __importStar(__webpack_require__(16));
 const path = __importStar(__webpack_require__(28));
 const dependency_graph_1 = __importDefault(__webpack_require__(29));
 let language = 'en';
@@ -43,6 +44,7 @@ function activate(context) {
     const config = vscode.workspace.getConfiguration('scan2findimgs');
     language = config.get('language') || 'en';
     let disposable = vscode.commands.registerCommand('extension.scan2findimgs', async () => {
+        const resourceRoot = vscode.Uri.joinPath(context.extensionUri, 'dist');
         const config = vscode.workspace.getConfiguration('scan2findimgs');
         const ignoreArr = config.get('ignore') || ['node_modules/**'];
         const formatStr = config.get('format') || 'png,jpg,jpeg,gif,bmp,svg';
@@ -64,23 +66,67 @@ function activate(context) {
             const i = path.join(firstWorkspaceFolderPath, file);
             return {
                 imageName: i,
+                originalImageName: file,
                 dep: imgObj[i],
             };
         });
-        // console.log('imgObj', imgObj);
-        console.log(imageGraph, 'imageGraph看看');
-        // showResults(images, references);
+        // fs.writeFileSync(path.join(firstWorkspaceFolderPath, './src/data.json'), JSON.stringify(imageGraph));
+        showResults(context, imageGraph, resourceRoot, rootPath[0].uri.fsPath);
     });
     context.subscriptions.push(disposable);
 }
-function showResults(images, references) {
-    const panel = vscode.window.createWebviewPanel('imageReferences', 'Image References', vscode.ViewColumn.One, {});
-    ``;
-    panel.webview.html = getWebviewContent(images, references);
+function showResults(context, images, resourceRoot, firstWorkspaceFolderPath) {
+    const panel = vscode.window.createWebviewPanel('scan2findimgs', 'scan2findimgs', vscode.ViewColumn.One, {
+        enableScripts: true,
+    });
+    const handledImages = images.map((i) => {
+        const imagePath = path.join(firstWorkspaceFolderPath, i.originalImageName);
+        const imageUri = vscode.Uri.file(imagePath);
+        const webviewImageUri = panel.webview.asWebviewUri(imageUri).toString();
+        return {
+            ...i,
+            webviewImageUri,
+        };
+    });
+    const themeColors = vscode.workspace.getConfiguration('workbench.colorCustomizations');
+    const backgroundColor = themeColors.get('editor.background');
+    const textColor = themeColors.get('editor.foreground');
+    const webviewResourceRoot = panel.webview.asWebviewUri(resourceRoot);
+    let html = fs.readFileSync(path.resolve(__dirname, './index.html'), {
+        encoding: 'utf-8',
+    });
+    html = html.replace(/\/VSCODE_WEBVIEW_BASE/g, webviewResourceRoot.toString());
+    panel.webview.html = html;
+    panel.webview.postMessage({
+        command: 'init',
+        data: {
+            backgroundColor,
+            textColor,
+            images: handledImages,
+        }
+    });
+    panel.webview.onDidReceiveMessage(message => {
+        console.log(message, 'message');
+        try {
+            switch (message.command) {
+                case 'openFile':
+                    openFile(JSON.parse(message.data));
+                    break;
+            }
+        }
+        catch (err) {
+            console.log(err, 'onDidReceiveMessage err');
+        }
+    }, undefined, context.subscriptions);
 }
-function getWebviewContent(images, references) {
-    // TODO: Generate HTML content for the webview
-    return '';
+async function openFile(filePath) {
+    try {
+        const fileUri = vscode.Uri.file(filePath);
+        await vscode.commands.executeCommand('vscode.open', fileUri);
+    }
+    catch (error) {
+        vscode.window.showErrorMessage(`Error opening file: ${error.message}`);
+    }
 }
 function deactivate() { }
 
