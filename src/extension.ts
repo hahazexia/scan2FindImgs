@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
       cwd: firstWorkspaceFolderPath,
       ignore: ignoreArr,
     });
-    console.log('firstWorkspaceFolderPath', firstWorkspaceFolderPath);
+
     const imageGraph = files.map(file => {
       const i = path.join(firstWorkspaceFolderPath, file);
 
@@ -40,7 +40,6 @@ export function activate(context: vscode.ExtensionContext) {
         dep: imgObj[i],
       };
     });
-    // fs.writeFileSync(path.join(firstWorkspaceFolderPath, './src/data.json'), JSON.stringify(imageGraph));
 
     showResults(context, imageGraph, resourceRoot, rootPath[0].uri.fsPath);
   });
@@ -79,15 +78,6 @@ function showResults(context: any, images: any[], resourceRoot: any, firstWorksp
 
   panel.webview.html = html;
 
-  panel.webview.postMessage({
-    command: 'init',
-    data: {
-      backgroundColor,
-      textColor,
-      images: handledImages,
-    }
-  });
-
   panel.webview.onDidReceiveMessage(
     message => {
       console.log(message, 'message');
@@ -96,6 +86,15 @@ function showResults(context: any, images: any[], resourceRoot: any, firstWorksp
           case 'openFile':
             openFile(JSON.parse(message.data));
             break;
+          case 'init':
+            panel.webview.postMessage({
+              command: 'init',
+              data: {
+                backgroundColor,
+                textColor,
+                images: handledImages,
+              }
+            });
         }
       } catch(err) {
         console.log(err, 'onDidReceiveMessage err');

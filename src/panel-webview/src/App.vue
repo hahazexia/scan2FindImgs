@@ -5,11 +5,29 @@ const backgroundColor = ref('#272822');
 const textColor = ref('#fff');
 const images = ref<{ imageName: string, dep: string[], webviewImageUri: any }[]>([]);
 const vscode = window?.acquireVsCodeApi?.();
+let data: any;
+
+try {
+  data = JSON.parse(localStorage.getItem('scan2findimgs') || '');
+} catch(err) {
+  console.log('scan2findimgs webview err', err);
+}
+
+if (data) {
+  backgroundColor.value = data?.backgroundColor || '#272822';
+  textColor.value = data?.textColor || '#fff';
+  images.value = data?.images || [];
+} else {
+  vscode.postMessage({
+    command: 'init',
+  });
+}
 
 window.addEventListener('message', event => {
   const message = event.data;
   switch (message.command) {
     case 'init':
+      localStorage.setItem('scan2findimgs', JSON.stringify(message?.data));
       backgroundColor.value = message?.data?.backgroundColor || '#272822';
       textColor.value = message?.data?.textColor || '#fff';
       images.value = message?.data?.images || [];

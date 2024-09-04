@@ -61,7 +61,6 @@ function activate(context) {
             cwd: firstWorkspaceFolderPath,
             ignore: ignoreArr,
         });
-        console.log('firstWorkspaceFolderPath', firstWorkspaceFolderPath);
         const imageGraph = files.map(file => {
             const i = path.join(firstWorkspaceFolderPath, file);
             return {
@@ -70,7 +69,6 @@ function activate(context) {
                 dep: imgObj[i],
             };
         });
-        // fs.writeFileSync(path.join(firstWorkspaceFolderPath, './src/data.json'), JSON.stringify(imageGraph));
         showResults(context, imageGraph, resourceRoot, rootPath[0].uri.fsPath);
     });
     context.subscriptions.push(disposable);
@@ -97,14 +95,6 @@ function showResults(context, images, resourceRoot, firstWorkspaceFolderPath) {
     });
     html = html.replace(/\/VSCODE_WEBVIEW_BASE/g, webviewResourceRoot.toString());
     panel.webview.html = html;
-    panel.webview.postMessage({
-        command: 'init',
-        data: {
-            backgroundColor,
-            textColor,
-            images: handledImages,
-        }
-    });
     panel.webview.onDidReceiveMessage(message => {
         console.log(message, 'message');
         try {
@@ -112,6 +102,15 @@ function showResults(context, images, resourceRoot, firstWorkspaceFolderPath) {
                 case 'openFile':
                     openFile(JSON.parse(message.data));
                     break;
+                case 'init':
+                    panel.webview.postMessage({
+                        command: 'init',
+                        data: {
+                            backgroundColor,
+                            textColor,
+                            images: handledImages,
+                        }
+                    });
             }
         }
         catch (err) {
