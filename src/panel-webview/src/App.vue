@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import ImagePreview from './ImagePreview.vue';
 
 const backgroundColor = ref('#272822');
 const textColor = ref('#fff');
@@ -10,6 +11,12 @@ const images = ref<{
   size: string;
   originalSize: string | number;
 }[]>([]);
+
+const x = ref(0);
+const y = ref(0);
+const url = ref();
+const show = ref(false);
+
 const vscode = window?.acquireVsCodeApi?.();
 let data: any;
 
@@ -47,6 +54,20 @@ const openFile = (img: any) => {
     data: JSON.stringify(img),
   });
 };
+
+const imageMouseover = (path: string, event: any) => {
+  console.log(event, 'event看看');
+  x.value = event.clientX;
+  y.value = event.clientY;
+  url.value = path;
+  show.value = true;
+};
+const imageMouseout = (path: string, event: any) => {
+  x.value = 0;
+  y.value = 0;
+  url.value = '';
+  show.value = false;
+};
 </script>
 
 <template>
@@ -78,7 +99,8 @@ const openFile = (img: any) => {
           <td>{{ index + 1 }}</td>
           <td>{{ item.size }}</td>
           <td>
-            <img :src="item?.webviewImageUri || ''" alt="">
+            <img :src="item?.webviewImageUri || ''" alt="" @mouseover="imageMouseover(item?.webviewImageUri, $event)"
+            @mouseout="imageMouseout(item?.webviewImageUri, $event)">
           </td>
           <td class="cursor image-name" @click="openFile(item.imageName)">{{ item?.imageName || '' }}</td>
           <td class="cursor">
@@ -95,6 +117,7 @@ const openFile = (img: any) => {
       </tbody>
     </table>
   </div>
+  <ImagePreview :url="url" :showPreview="show" :x="x + 10" :y="y + 10" />
 </template>
 
 <style lang="scss">
