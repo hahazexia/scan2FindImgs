@@ -31,13 +31,26 @@ export function activate(context: vscode.ExtensionContext) {
       ignore: ignoreArr,
     });
 
-    const imageGraph = files.map(file => {
-      const i = path.join(firstWorkspaceFolderPath, file);
+    const sizeFiles: any = await Promise.all(files.map(file => {
+      return new Promise(async (resolve, reject) => {
+        const i = path.join(firstWorkspaceFolderPath, file);
+        const size = await getFilesize(i);
 
+        resolve({
+          relativeFile: file,
+          absoluteFile: i,
+          ...size,
+        });
+      });
+    }));
+
+    const imageGraph = sizeFiles.map((file: any) => {
       return {
-        imageName: i,
-        originalImageName: file,
-        dep: imgObj[i],
+        imageName: file.absoluteFile,
+        originalImageName: file.relativeFile,
+        dep: imgObj[file.absoluteFile],
+        size: file.size,
+        originalSize: file.originalSize,
       };
     });
 
@@ -45,6 +58,24 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   context.subscriptions.push(disposable);
+}
+
+async function getFilesize(source: string) {
+  try {
+    const fsStat = fs.statSync(source);
+    const { filesize } = await import('filesize');
+    return {
+      size: filesize(fsStat.size, { standard: 'jedec' }),
+      originalSize: fsStat.size,
+    };
+  } catch (err) {
+    console.error(`Failed to get filesize: ${source}`, err);
+    vscode.window.showErrorMessage(language === 'zh' ? `获取图片大小失败: ${source}` : `Failed to get filesize: ${source}`);
+    return {
+      size: '',
+      originalSize: '',
+    };
+  }
 }
 
 function showResults(context: any, images: any[], resourceRoot: any, firstWorkspaceFolderPath: any) {
@@ -66,6 +97,7 @@ function showResults(context: any, images: any[], resourceRoot: any, firstWorksp
       webviewImageUri,
     }
   });
+  console.log(handledImages, 'handledImages看看');
   const themeColors = vscode.workspace.getConfiguration('workbench.colorCustomizations');
   const backgroundColor = themeColors.get('editor.background');
   const textColor = themeColors.get('editor.foreground');

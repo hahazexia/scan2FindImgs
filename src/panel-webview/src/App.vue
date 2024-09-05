@@ -3,7 +3,13 @@ import { ref } from 'vue';
 
 const backgroundColor = ref('#272822');
 const textColor = ref('#fff');
-const images = ref<{ imageName: string, dep: string[], webviewImageUri: any }[]>([]);
+const images = ref<{
+  imageName: string;
+  dep: string[];
+  webviewImageUri: any;
+  size: string;
+  originalSize: string | number;
+}[]>([]);
 const vscode = window?.acquireVsCodeApi?.();
 let data: any;
 
@@ -16,7 +22,7 @@ try {
 if (data) {
   backgroundColor.value = data?.backgroundColor || '#272822';
   textColor.value = data?.textColor || '#fff';
-  images.value = data?.images || [];
+  images.value = data?.images.sort((a: any, b: any) => b.originalSize - a.originalSize) || [];
 } else {
   vscode.postMessage({
     command: 'init',
@@ -30,7 +36,7 @@ window.addEventListener('message', event => {
       localStorage.setItem('scan2findimgs', JSON.stringify(message?.data));
       backgroundColor.value = message?.data?.backgroundColor || '#272822';
       textColor.value = message?.data?.textColor || '#fff';
-      images.value = message?.data?.images || [];
+      images.value = message?.data?.images.sort((a: any, b: any) => b.originalSize - a.originalSize) || [];
       break;
   }
 });
@@ -53,9 +59,15 @@ const openFile = (img: any) => {
       total: {{ images.length }}
     </div>
     <table>
+      <colgroup class="column1"></colgroup>
+      <colgroup class="column2"></colgroup>
+      <colgroup class="column3"></colgroup>
+      <colgroup class="column4"></colgroup>
+      <colgroup class="column5"></colgroup>
       <thead>
         <tr>
           <th>No.</th>
+          <th>size</th>
           <th>image</th>
           <th>image file</th>
           <th>dependencies</th>
@@ -64,13 +76,14 @@ const openFile = (img: any) => {
       <tbody v-if="images.length > 0">
         <tr v-for="(item, index) in images" :key="index">
           <td>{{ index + 1 }}</td>
+          <td>{{ item.size }}</td>
           <td>
             <img :src="item?.webviewImageUri || ''" alt="">
           </td>
-          <td class="cursor" @click="openFile(item.imageName)">{{ item?.imageName || '' }}</td>
+          <td class="cursor image-name" @click="openFile(item.imageName)">{{ item?.imageName || '' }}</td>
           <td class="cursor">
             <template v-if="item?.dep">
-              <div v-for="dep in item?.dep" @click="openFile(dep)">
+              <div class="dep" v-for="dep in item?.dep" @click="openFile(dep)">
                 {{ dep }}
               </div>
             </template>
@@ -93,6 +106,12 @@ const openFile = (img: any) => {
     font-weight: bold;
     margin-bottom: 10px;
   }
+  .column2 {
+    min-width: 150px;
+  }
+  .column4, .column5 {
+    max-width: 500px;
+  }
   table, tr, td, th {
     border: 1px solid #fff;
     border-collapse: collapse;
@@ -102,6 +121,12 @@ const openFile = (img: any) => {
   }
   .cursor {
     cursor: pointer;
+  }
+  .dep:hover {
+    color: rgb(116, 94, 224);
+  }
+  .image-name:hover {
+    color: rgb(116, 94, 224);
   }
 }
 </style>

@@ -61,17 +61,47 @@ function activate(context) {
             cwd: firstWorkspaceFolderPath,
             ignore: ignoreArr,
         });
-        const imageGraph = files.map(file => {
-            const i = path.join(firstWorkspaceFolderPath, file);
+        const sizeFiles = await Promise.all(files.map(file => {
+            return new Promise(async (resolve, reject) => {
+                const i = path.join(firstWorkspaceFolderPath, file);
+                const size = await getFilesize(i);
+                resolve({
+                    relativeFile: file,
+                    absoluteFile: i,
+                    ...size,
+                });
+            });
+        }));
+        const imageGraph = sizeFiles.map((file) => {
             return {
-                imageName: i,
-                originalImageName: file,
-                dep: imgObj[i],
+                imageName: file.absoluteFile,
+                originalImageName: file.relativeFile,
+                dep: imgObj[file.absoluteFile],
+                size: file.size,
+                originalSize: file.originalSize,
             };
         });
         showResults(context, imageGraph, resourceRoot, rootPath[0].uri.fsPath);
     });
     context.subscriptions.push(disposable);
+}
+async function getFilesize(source) {
+    try {
+        const fsStat = fs.statSync(source);
+        const { filesize } = await __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 68));
+        return {
+            size: filesize(fsStat.size, { standard: 'jedec' }),
+            originalSize: fsStat.size,
+        };
+    }
+    catch (err) {
+        console.error(`Failed to get filesize: ${source}`, err);
+        vscode.window.showErrorMessage(language === 'zh' ? `获取图片大小失败: ${source}` : `Failed to get filesize: ${source}`);
+        return {
+            size: '',
+            originalSize: '',
+        };
+    }
 }
 function showResults(context, images, resourceRoot, firstWorkspaceFolderPath) {
     const panel = vscode.window.createWebviewPanel('scan2findimgs', 'scan2findimgs', vscode.ViewColumn.One, {
@@ -86,6 +116,7 @@ function showResults(context, images, resourceRoot, firstWorkspaceFolderPath) {
             webviewImageUri,
         };
     });
+    console.log(handledImages, 'handledImages看看');
     const themeColors = vscode.workspace.getConfiguration('workbench.colorCustomizations');
     const backgroundColor = themeColors.get('editor.background');
     const textColor = themeColors.get('editor.foreground');
@@ -8434,7 +8465,7 @@ class DependencyGraph {
     async build() {
         try {
             console.log(this.rootPath, 'rootPath');
-            const { jsonrepair } = await __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 68));
+            const { jsonrepair } = await __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 69));
             const tsconfigPath = this.findTsconfig(this.rootPath);
             let tsBaseUrl = '';
             let alias = null;
