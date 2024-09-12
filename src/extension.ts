@@ -125,6 +125,7 @@ function showResults(context: any, images: any[], resourceRoot: any, firstWorksp
                 backgroundColor,
                 textColor,
                 images: handledImages,
+                firstWorkspaceFolderPath,
               }
             });
         }

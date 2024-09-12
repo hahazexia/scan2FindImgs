@@ -18,29 +18,38 @@ const url = ref();
 const show = ref(false);
 
 const vscode = window?.acquireVsCodeApi?.();
-let data: any;
 
-try {
-  data = JSON.parse(localStorage.getItem('scan2findimgs') || '');
-} catch(err) {
-  console.log('scan2findimgs webview err', err);
-}
+vscode.postMessage({
+  command: 'init',
+});
 
-if (data) {
-  backgroundColor.value = data?.backgroundColor || '#272822';
-  textColor.value = data?.textColor || '#fff';
-  images.value = data?.images.sort((a: any, b: any) => b.originalSize - a.originalSize) || [];
-} else {
-  vscode.postMessage({
-    command: 'init',
-  });
-}
+const init = () => {
+  let data: any;
+
+  try {
+    data = JSON.parse(localStorage.getItem('scan2findimgs') || '');
+  } catch(err) {
+    console.log('scan2findimgs webview err', err);
+  }
+
+  if (data) {
+    backgroundColor.value = data?.backgroundColor || '#272822';
+    textColor.value = data?.textColor || '#fff';
+    images.value = data?.images.sort((a: any, b: any) => b.originalSize - a.originalSize) || [];
+  }
+};
 
 window.addEventListener('message', event => {
   const message = event.data;
   switch (message.command) {
     case 'init':
+      const currentWorkspace = localStorage.getItem('scan2findimgs_firstWorkspaceFolderPath');
+      if (currentWorkspace === message?.data?.firstWorkspaceFolderPath) {
+        init();
+        break;
+      }
       localStorage.setItem('scan2findimgs', JSON.stringify(message?.data));
+      localStorage.setItem('scan2findimgs_firstWorkspaceFolderPath', message?.data?.firstWorkspaceFolderPath);
       backgroundColor.value = message?.data?.backgroundColor || '#272822';
       textColor.value = message?.data?.textColor || '#fff';
       images.value = message?.data?.images.sort((a: any, b: any) => b.originalSize - a.originalSize) || [];

@@ -140,6 +140,7 @@ function showResults(context, images, resourceRoot, firstWorkspaceFolderPath) {
                             backgroundColor,
                             textColor,
                             images: handledImages,
+                            firstWorkspaceFolderPath,
                         }
                     });
             }
