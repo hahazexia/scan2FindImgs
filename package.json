@@ -4,6 +4,8 @@
   "description": "scan project to find images",
   "version": "1.0.0",
   "icon": "./scan2findimgs.gif",
+  "author": "hahazexia",
+  "publisher": "hahazexia",
   "engines": {
     "vscode": "^1.91.1"
   },
