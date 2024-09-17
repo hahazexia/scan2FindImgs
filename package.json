@@ -2,7 +2,8 @@
   "name": "scan2findimgs",
   "displayName": "scan2findimgs",
   "description": "scan project to find images",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "icon": "./scan2findimgs.gif",
   "engines": {
     "vscode": "^1.91.1"
   },
