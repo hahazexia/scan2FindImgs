@@ -85,6 +85,7 @@ function showResults(context: any, images: any[], resourceRoot: any, firstWorksp
     vscode.ViewColumn.One,
     {
       enableScripts: true,
+      retainContextWhenHidden: true,
     }
   );
 
