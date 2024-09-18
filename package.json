@@ -2,7 +2,7 @@
   "name": "scan2findimgs",
   "displayName": "scan2findimgs",
   "description": "scan project to find images",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "icon": "./scan2findimgs.gif",
   "author": "hahazexia",
   "publisher": "hahazexia",

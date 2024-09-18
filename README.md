@@ -2,6 +2,11 @@
 
 scan to find images in project folder,Visual Studio Code Extension
 
+## How to use
+
+1. Shift+Command+P (Mac) / Ctrl+Shift+P (Windows/Linux) open the Command Palette.
+2. Execute the `scan2findimgs` Command.
+
 ## Extension Settings
 
 * `scan2findimgs.language`: Customize the logger language used by the extension.
@@ -14,16 +19,6 @@ Users appreciate release notes as you update your extension.
 ### 1.0.0
 
 Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
 
 ## For more information
 
